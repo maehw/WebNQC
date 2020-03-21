@@ -10,7 +10,7 @@ This BrickBot/nqc repo captures changes to the 3.1r6 code as found on
 4. [Enable specifying the default IR tower name in a configuration file](https://sourceforge.net/p/bricxcc/patches/4/)
 5. [Support using a Make variable to specify the default compile-time port name, instead of having to modify source code files](https://sourceforge.net/p/bricxcc/patches/5/)
 
-This release also attempts to build on the jverne/nqc private fork, which was maintained to keep NQC building and running on OS X and BSD.
+This release also attempts to build on the [jverne/nqc](https://github.com/jverne/nqc) copy, which was maintained to keep NQC building and running on OS X and BSD.
 
 For bug reports about _this_ fork of NQC, please [file a GitHub Issue](https://github.com/BrickBot/nqc/issues) for this project.
 
