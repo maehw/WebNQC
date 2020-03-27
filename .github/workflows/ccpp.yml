@@ -1,0 +1,19 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install build dependencies
+      run: sudo apt-get install 
+    - name: make
+      run: make -j1 DEFAULT_SERIAL_NAME='"/dev/ttyS0"' DEFAULT_USB_NAME='"/dev/usb/legousbtower0"' DEFAULT_PORT_NAME='"usb"'
