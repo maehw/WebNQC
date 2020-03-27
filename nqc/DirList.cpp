@@ -23,6 +23,7 @@
 
 using std::strcpy_s;
 using std::strcat_s;
+using std::rsize_t;
 using std::strlen;
 using std::size_t;
 
@@ -53,8 +54,8 @@ bool DirList::Find(const char *filename, char *pathname)
 {
     struct stat stat_buf;
 
-    size_t len = sizeof(pathname);
-    if (strcpy_s(pathname, filename, len) >= len) {
+    rsize_t len = sizeof(pathname);
+    if (strcpy_s(pathname, len, filename) >= len) {
         return false;
     }
 
@@ -62,8 +63,8 @@ bool DirList::Find(const char *filename, char *pathname)
         return true;
 
     for(Entry *e = fEntries.GetHead(); e; e=e->GetNext()) {
-        if (strcpy_s(pathname, e->GetPath(), len) < len) {
-            if (strcat_s(pathname, filename, len) < len) {
+        if (strcpy_s(pathname, len, e->GetPath()) < len) {
+            if (strcat_s(pathname, len, filename) < len) {
                 if (stat(pathname, &stat_buf) == 0) {
                     return true;
                 }
