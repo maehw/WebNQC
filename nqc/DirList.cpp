@@ -51,7 +51,7 @@ bool DirList::Find(const char *filename, char *pathname)
 {
     struct stat stat_buf;
 
-    rsize_t len = sizeof(pathname);
+    size_t len = sizeof(pathname);
     if (strcpy_s(pathname, len, filename) >= len) {
         return false;
     }
