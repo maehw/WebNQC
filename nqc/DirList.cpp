@@ -53,7 +53,7 @@ bool DirList::Find(const char *filename, char *pathname)
     struct stat stat_buf;
 
     size_t len = sizeof(pathname);
-    if (strlcpy(pathname, filename, len) >= len) {
+    if (strcpy_s(pathname, filename, len) >= len) {
         return false;
     }
 
@@ -61,7 +61,7 @@ bool DirList::Find(const char *filename, char *pathname)
         return true;
 
     for(Entry *e = fEntries.GetHead(); e; e=e->GetNext()) {
-        if (strlcpy(pathname, e->GetPath(), len) < len) {
+        if (strcpy_s(pathname, e->GetPath(), len) < len) {
             if (strlcat(pathname, filename, len) < len) {
                 if (stat(pathname, &stat_buf) == 0) {
                     return true;
