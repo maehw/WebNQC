@@ -22,7 +22,7 @@
 #include "DirList.h"
 
 using std::strcpy_s;
-using std::strcat;
+using std::strcat_s;
 using std::strlen;
 using std::size_t;
 
@@ -63,7 +63,7 @@ bool DirList::Find(const char *filename, char *pathname)
 
     for(Entry *e = fEntries.GetHead(); e; e=e->GetNext()) {
         if (strcpy_s(pathname, e->GetPath(), len) < len) {
-            if (strlcat(pathname, filename, len) < len) {
+            if (strcat_s(pathname, filename, len) < len) {
                 if (stat(pathname, &stat_buf) == 0) {
                     return true;
                 }
