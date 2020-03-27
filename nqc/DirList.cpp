@@ -21,6 +21,7 @@
 #endif
 #include "DirList.h"
 
+using std::strcpy_s;
 using std::strcat;
 using std::strlen;
 using std::size_t;
