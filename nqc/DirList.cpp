@@ -12,7 +12,7 @@
  *
  */
 #include <cstring>
-#include <string.h>
+#include "StrlUtil.h"
 
 #if defined(__MWERKS__) && (!__MACH__)
 #include <stat.h>
@@ -21,6 +21,7 @@
 #endif
 #include "DirList.h"
 
+using std::strcat;
 using std::strlen;
 using std::size_t;
 
@@ -52,16 +53,17 @@ bool DirList::Find(const char *filename, char *pathname)
     struct stat stat_buf;
 
     size_t len = sizeof(pathname);
-    if (strcpy_s(pathname, len, filename) >= len) {
+    if (StrlUtil::strlcpy(pathname, filename, len) >= len) {
         return false;
     }
 
-    if (stat(pathname, &stat_buf) == 0)
+    if (stat(pathname, &stat_buf) == 0) {
         return true;
+    }
 
     for(Entry *e = fEntries.GetHead(); e; e=e->GetNext()) {
-        if (strcpy_s(pathname, len, e->GetPath()) < len) {
-            if (strcat_s(pathname, len, filename) < len) {
+        if (StrlUtil::strlcpy(pathname, e->GetPath(), len) < len) {
+            if (StrlUtil::strlcat(pathname, filename, len) < len) {
                 if (stat(pathname, &stat_buf) == 0) {
                     return true;
                 }

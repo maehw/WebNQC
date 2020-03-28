@@ -85,7 +85,7 @@ else
 ifneq (,$(strip $(findstring $(OSTYPE), Linux)))
 	# Linux
 	USBOBJ = RCX_USBTowerPipe_linux
-	TCPOBJ = rcxlib/RCX_TcpPipe_linux
+	TCPOBJ = RCX_TcpPipe_linux
 	DEFAULT_SERIAL_NAME ?= "/dev/ttyS0"
 	# Timeout value is 200 in kernel driver module legousbtower.c
 	LEGO_TOWER_SET_READ_TIMEOUT?= 200
@@ -146,7 +146,7 @@ RCXOBJS = RCX_Cmd RCX_Disasm RCX_Image RCX_Link RCX_Log \
 	$(USBOBJ) $(TCPOBJ)
 RCXOBJ = $(addprefix rcxlib/, $(addsuffix .o, $(RCXOBJS)))
 
-POBJS = PStream PSerial_unix PHashTable PListS PDebug
+POBJS = PStream PSerial_unix PHashTable PListS PDebug StrlUtil
 POBJ = $(addprefix platform/, $(addsuffix .o, $(POBJS)))
 
 COBJS = AsmStmt AssignStmt BlockStmt Bytecode Conditional \
@@ -169,7 +169,7 @@ NQCOBJ = $(addprefix nqc/, $(addsuffix .o, $(NQCOBJS)))
 
 # We need a 'bin' directory because the names of the binaries clash
 # with existing directory names.
-all : bin nqh nub bin/nqc
+all : info bin nqh nub bin/nqc
 
 # Create the bin directory in the Makefile because it is not part
 # of the original distribution.  This prevents the need to tell the user
@@ -177,7 +177,7 @@ all : bin nqh nub bin/nqc
 bin:
 	$(MKDIR) bin
 
-bin/nqc: compiler/parse.cpp $(OBJ)
+bin/nqc$(EXT): compiler/parse.cpp $(OBJ)
 	$(CXX) -o $@ $(OBJ) $(LIBS)
 
 bin/mkdata: mkdata/mkdata.cpp nqc/SRecord.cpp
@@ -285,12 +285,14 @@ install: all
 # Print some info about the environment
 #
 info:
-	@echo "Building for: $(OSTYPE)"
-	@echo CXX=$(CXX)
-	@echo CFLAGS=$(CFLAGS)
+	@echo Building for: $(OSTYPE)
+	@echo EXT=$(EXT)
+	@echo USBOBJ=$(USBOBJ)
+	@echo TCPOBJ=$(TCPOBJ)
+	@echo PREFIX=$(PREFIX)
 	@echo YACC=$(YACC)
 	@echo FLEX=$(FLEX)
 	@echo LIBS=$(LIBS)
+	@echo CXX=$(CXX)
+	@echo CFLAGS=$(CFLAGS)
 	@echo OBJ=$(OBJ)
-	@echo USBOBJ=$(USBOBJ)
-	@echo PREFIX=$(PREFIX)
