@@ -1,8 +1,13 @@
 # OS X Noise
 .DS_Store
+
+# IDE noise
+.idea/*
+
 # RCX specific "binaries"
 *.rcx
 bin/*
+utils/*
 
 # Object files
 *.o

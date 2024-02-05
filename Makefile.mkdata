@@ -1,0 +1,81 @@
+# Makefile for nqc
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# The Initial Developer of this code is David Baum.
+# Portions created by David Baum are Copyright (C) 1999 David Baum.
+# All Rights Reserved.
+#
+# Portions created by John Hansen are Copyright (C) 2005 John Hansen.
+# All Rights Reserved.
+#
+#   original author:
+#		Dave Baum <dbaum@enteract.com>
+#
+#   other contributors:
+#		Rodd Zurcher <rbz@enteract.com>
+#		Patrick Nadeau <pnadeau@wave.home.com>
+#		Jonathan W. Miner <jminer@fcmail.com>
+#       Maeh W. <maehw@posteo.de>
+#
+#
+.SUFFIXES: .cpp .c
+
+#
+# Pick your C++ compiler.
+#
+CXX ?= ${CXX}
+
+#
+# Link in any necessary C++ libraries
+#
+LIBS ?= -lstdc++
+
+# other commands
+CP ?= cp -f
+MKDIR ?= mkdir
+MV ?= mv -f
+RM ?= rm -f
+
+# Common local include directories
+INCLUDE_DIRS = platform rcxlib nqc compiler
+INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
+
+# Common compiler flags
+CFLAGS += $(INCLUDES) -Wall
+
+CXX:=$(TOOLPREFIX)$(CXX)
+
+#
+# Debug builds for most Clang/GCC environments.
+# This implies -DDEBUG_TIMEOUT
+#
+#CFLAGS += -DDEBUG -DPDEBUG -g -O0
+
+# We need a 'bin' directory because the names of the binaries clash
+# with existing directory names.
+all : utils utils/mkdata
+
+# Create the bin directory in the Makefile because it is not part
+# of the original distribution.  This prevents the need to tell the user
+# to do it.
+utils:
+	$(MKDIR) utils
+
+utils/mkdata: mkdata/mkdata.cpp nqc/SRecord.cpp
+	$(CXX) -o $@ $(INCLUDES) $^
+
+#
+# clean up stuff
+#
+clean:
+	-$(RM) utils/*
+	-$(RM) */*.o
+
+#
+# general rule for compiling
+#
+.cpp.o:
+	$(CXX) -c $(CFLAGS) $< -o $*.o

@@ -18,6 +18,7 @@
 #		Rodd Zurcher <rbz@enteract.com>
 #		Patrick Nadeau <pnadeau@wave.home.com>
 #		Jonathan W. Miner <jminer@fcmail.com>
+#       Maeh W. <maehw@posteo.de>
 #
 #
 .SUFFIXES: .cpp .c
@@ -77,8 +78,8 @@ OSTYPE := $(strip $(shell uname -s))
 
 ifneq (,$(strip $(findstring $(OSTYPE), Darwin)))
 	# Mac OS X
-	LIBS += -framework IOKit -framework CoreFoundation
-  	USBOBJ = RCX_USBTowerPipe_osx
+	# LIBS += -framework IOKit -framework CoreFoundation
+  	# USBOBJ = RCX_USBTowerPipe_osx
   	CXX = c++
   	CFLAGS += -O3 -std=c++11 -Wno-deprecated-register
 else
@@ -169,7 +170,7 @@ NQCOBJ = $(addprefix nqc/, $(addsuffix .o, $(NQCOBJS)))
 
 # We need a 'bin' directory because the names of the binaries clash
 # with existing directory names.
-all : info bin nqh nub bin/nqc
+all : info bin nqh nub bin/nqc.html
 
 # Create the bin directory in the Makefile because it is not part
 # of the original distribution.  This prevents the need to tell the user
@@ -177,11 +178,8 @@ all : info bin nqh nub bin/nqc
 bin:
 	$(MKDIR) bin
 
-bin/nqc$(EXT): compiler/parse.cpp $(OBJ)
-	$(CXX) -o $@ $(OBJ) $(LIBS)
-
-bin/mkdata: mkdata/mkdata.cpp nqc/SRecord.cpp
-	$(CXX) -o $@ $(INCLUDES) $^
+bin/nqc.html: compiler/parse.cpp $(OBJ)
+	$(CXX) -o $@ --shell-file ./emscripten/webnqc_shell.html $(OBJ) $(LIBS)
 
 #
 # clean up stuff
@@ -225,19 +223,19 @@ compiler/lexer.cpp: compiler/lex.l
 #
 nqh: compiler/rcx1_nqh.h compiler/rcx2_nqh.h
 
-compiler/rcx1_nqh.h: compiler/rcx1.nqh bin/mkdata
-	bin/mkdata $< $@ rcx1_nqh
+compiler/rcx1_nqh.h: compiler/rcx1.nqh utils/mkdata
+	utils/mkdata $< $@ rcx1_nqh
 
-compiler/rcx2_nqh.h: compiler/rcx2.nqh bin/mkdata
-	bin/mkdata $< $@ rcx2_nqh
+compiler/rcx2_nqh.h: compiler/rcx2.nqh utils/mkdata
+	utils/mkdata $< $@ rcx2_nqh
 
 #
 # rcxnub.h
 #
 nub: rcxlib/rcxnub.h
 
-rcxlib/rcxnub.h: rcxlib/fastdl.srec bin/mkdata
-	bin/mkdata -s $< $@ rcxnub
+rcxlib/rcxnub.h: rcxlib/fastdl.srec utils/mkdata
+	utils/mkdata -s $< $@ rcxnub
 
 #
 # general rule for compiling
@@ -286,7 +284,6 @@ install: all
 #
 info:
 	@echo Building for: $(OSTYPE)
-	@echo EXT=$(EXT)
 	@echo USBOBJ=$(USBOBJ)
 	@echo TCPOBJ=$(TCPOBJ)
 	@echo PREFIX=$(PREFIX)

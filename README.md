@@ -1,103 +1,72 @@
-NQC  ![NQC CI](https://github.com/BrickBot/nqc/workflows/NQC%20CI/badge.svg)
----
-> Not Quite C is a simple language with a C-like syntax that can be used to program Lego's RCX programmable brick (from the MindStorms set). If you are just getting started with programming, then graphical environments such as the MindStorms RIS software or Robolab are probably better choices. If, however, you're a C programmer and prefer typing a few lines to drag and drop icon programming, then NQC might be perfect for you.
+# WebNQC README
 
-This BrickBot/nqc repo captures changes to the 3.1r6 code as found on
-[BricxCC](http://bricxcc.sourceforge.net/nqc/), including the following [patches that were posted by Matthew Sheets to the original SourceForge project site following the release of nqc 3.1r6 but never incorporated](https://sourceforge.net/p/bricxcc/patches/):
-1. [Added TCP support, facilitating use of NQC with programs such as BrickEmu (an RCX emulator)](https://sourceforge.net/p/bricxcc/patches/2/)
-2. [Added additional capabilities for specifying the default USB port, including at both compile time using a Make variable and via enhanced command-line argument support](https://sourceforge.net/p/bricxcc/patches/2/)
-3. [Support Makefile variables DESTDIR and TOOLPREFIX](https://sourceforge.net/p/bricxcc/patches/3/)
-4. [Enable specifying the default IR tower name in a configuration file](https://sourceforge.net/p/bricxcc/patches/4/)
-5. [Support using a Make variable to specify the default compile-time port name, instead of having to modify source code files](https://sourceforge.net/p/bricxcc/patches/5/)
+> "Not Quite C is a simple language with a C-like syntax that can be used to program Lego's RCX programmable brick (from the MindStorms set). If you are just getting started with programming, then graphical environments such as the MindStorms RIS software or Robolab are probably better choices. If, however, you're a C programmer and prefer typing a few lines to drag and drop icon programming, then NQC might be perfect for you."
 
-This release also attempts to build on the [jverne/nqc](https://github.com/jverne/nqc) copy, which was maintained to keep NQC building and running on OS X and BSD.
+This repository is used to compile **NQC as WebAssembly bytecode (WASM)** so that we can run it in a web browser - without any installation and independent of your machine's platform (Windows, Linux, MacOS, etc).
 
-For bug reports about _this_ fork of NQC, please [file a GitHub Issue](https://github.com/BrickBot/nqc/issues) for this project.
+This version of NQC has been forked from [BrickBot/nqc](https://github.com/BrickBot/nqc) which itself is based on version 3.1r6 code as found on
+[BricxCC](http://bricxcc.sourceforge.net/nqc/). Several files may have been removed and functionality can be reduced (e.g. no IR tower communication).
 
-The original README from the NQC project follows.
+## Build
 
----
+Build the `mkdata` utility which is required by the next step:
 
-NQC ReadMe
-----------
+```shell
+make -f Makefile.mkdata
+```
 
-If you have a problem, PLEASE CHECK THE FAQ:
-* http://bricxcc.sourceforge.net/nqc/doc/faq.html
-  
-Send bug reports to bricxcc@comcast.net.  Be sure to include details about what
-platform you are running nqc on and a sample file that demonstrates the bug if
-possible.
+Build NQC using [Emscripten Compiler Frontend (emcc)](https://emscripten.org/docs/tools_reference/emcc.html):
 
-For updates and additional documentation, visit the [NQC Web Site](http://bricxcc.sourceforge.net/nqc)
+```shell
+emmake make CXX=emcc
+```
+
+>"Emscripten build output consists of two essential parts: 
+>
+>1) the low level compiled code module and
+>2) the JavaScript runtime to interact with it.
+>
+>For example, when building with `-o out.html`, the compiled code is stored in a file `out.wasm` and the runtime lives in a file `out.js`."
+>
+> _(from https://emscripten.org/docs/compiling/Deploying-Pages.html)_
+
+So, let's check the results and try to run NQC WASM locally:
+
+```shell
+$ cd bin
+
+$ ls
+nqc.html nqc.js nqc.wasm
+
+$ node nqc.js
+nqc version 3.2 r1 (built Feb  5 2024, 13:37:42)
+     Copyright (C) 2005 John Hansen.  All Rights Reserved.
+Usage error: try 'nqc -help' to display options
+```
+
+Looks good so far! Now, let's run it from a local web server (from folder `./bin/`, using Python):
+
+```shell
+python -m http.server 8080
+```
+
+For interaction open the HTML shell. This is done by opening http://localhost:8080/nqc.html in your favorite web browser.
+
+> "Emscripten provides a **default HTML shell** file that serves as a launcher to run the code, simplified to get started with development. However when getting ready to release and host the content on a web site, a number of extra features and customizations are likely needed to polish the visitor experience. This guide highlights things to pay attention to when deploying sites to the public."
+> 
+> _(from https://emscripten.org/docs/compiling/Deploying-Pages.html)_
+
+Currently, NQC source code from an HTML `textarea` input is used as NQC's input. NQC is used to generate a listing and the bytecode.
 
 
-Note to Windows Users
----------------------
+## TODOs and visions
 
-NQC is a command line based tool - normally you run it by typing an
-appropriate command into an MS-DOS window.  There is no GUI for it and
-if you double-click the nqc.exe file an MS-DOS console will be created
-for you, NQC will run within it, then since NQC finishes almost
-immediately, the entire window will disappear.
-
-Some people prefer command line based tools because they allow you to
-use the text editor of your choice, etc. It also makes for identical
-behavior under Windows, Mac, and Linux. In order to use the command line
-version of NQC you'll need to do two things:
-
-1. Use some sort of text editor (such as Notepad) to edit and save a
-source file for NQC to compile.
-
-2. From an MS-DOS window type the appropriate NQC command. Its usually
-best to either put all of your programs and nqc.exe in the same
-directory, or make sure the directory containing NQC is in your command
-path. 
-
-If any of the above seem either too confusing or too tedious, then you
-may want to try the BricxCC which provides a familiar Windows style GUI on top
-of the standard NQC compiler.  You can download BricxCC here:
-
-http://bricxcc.sourceforge.net/
-
-
-Getting started
----------------
-
-Download the appropriate compiler (nqc or nqc.exe) and put it where
-your shell can find it as a command.
-
-The IR tower should be connected to your modem port (macintosh) or COM1
-(Win32/Linux). The IR tower should be set for "near" mode (small
-triangle). The RCX should also be set for this mode, and firmware must
-already be downloaded.
-
-Compile and download the test file using the following command line:
-
-`nqc -d test.nqc
-
-The test program assumes there's a motor on output A and a touch sensor
-on input 1.  It turns on the motor and waits for the switch to be
-pressed, then it turns off the motor and plays a sound.
-
-If you are using a USB tower or a different serial port you will need to
-specify the port either by adding a -Sx option (where x is the name of the
-port) to the command line or by setting the RCX_PORT environment variable.
-
-Here are some examples:
-
-USB tower (where supported)
-	nqc -Susb -d test.nqc
-
-Win32 COM2 port:
-	set RCX_PORT=COM2
-
-Win32 USB port:
-	set RCX_PORT=usb
-	
-Linux:
-	The syntax for setting environment variables is shell specific.  By
-	default nqcc uses "/dev/ttyS0" as the device name for the serial
-    port.  If you are using the second serial port, then "/dev/ttyS1"
-    should work.  Other device drivers may or may not work depending on if
-    they implement the expected ioctl's to setup the baud rate, parity,
-    etc.
+- Remove unwanted features or at least their accessibility; especially bytecode download functions
+- Add CI pipeline (e.g. GitHub Actions) for automatic build & semi-automatic relase
+- Implement support for download of bytecode to the RCX using the [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for IR tower access
+- Allow _real_ interaction: make NQC input file `textarea` writable and add button to re-compile the code
+- Add feature to switch between different source files and keep them (locally?) for longer than a browser session
+- Add feature to share projects with others
+- Make the UI nice for good UX
+- Add i18n support
+- Add [Blockly](https://developers.google.com/blockly) support for visual programming and generate NQC code from it (should be another project which uses WebNQC behind the scenes)
