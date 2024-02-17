@@ -231,6 +231,9 @@ task main()
           if (text) console.error('[post-exception status] ' + text);
         };
       };
+      Module['onRuntimeInitialized'] = function() {
+        alert("Ready to run code!");
+      };
     </script>
     {{{ SCRIPT }}}
   </body>

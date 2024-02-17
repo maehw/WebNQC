@@ -63,6 +63,13 @@ For interaction open the HTML shell. This is done by opening http://localhost:80
 
 Currently, NQC source code from an HTML `textarea` input is used as NQC's input. NQC is used to generate a listing and the bytecode.
 
+What we want is to execute the `main()` function 
+
+- only on demand (e.g. a _button click_)
+- repeatedly and not only once (e.g. on _every_ button click)
+
+and not after startup is complete.
+
 
 ## TODOs and visions
 
