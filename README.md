@@ -30,6 +30,13 @@ emmake make CXX=emcc
 >
 > _(from https://emscripten.org/docs/compiling/Deploying-Pages.html)_
 
+
+> "Emscripten provides a **default HTML shell** file that serves as a launcher to run the code, simplified to get started with development. However when getting ready to release and host the content on a web site, a number of extra features and customizations are likely needed to polish the visitor experience. This guide highlights things to pay attention to when deploying sites to the public."
+> 
+> _(from https://emscripten.org/docs/compiling/Deploying-Pages.html)_
+
+The `Makefile` uses `--shell-file` to point to a custom HTML template shell file.
+
 So, let's check the results and try to run NQC WASM locally:
 
 ```shell
@@ -50,11 +57,9 @@ Looks good so far! Now, let's run it from a local web server (from folder `./bin
 python -m http.server 8080
 ```
 
-For interaction open the HTML shell. This is done by opening http://localhost:8080/nqc.html in your favorite web browser.
+We do this because "several browsers (including Chrome, Safari, and Internet Explorer) do not support `file://` XHR requests, and can’t load extra files needed by the HTML (like a .wasm file, or packaged file data as mentioned lower down)."
 
-> "Emscripten provides a **default HTML shell** file that serves as a launcher to run the code, simplified to get started with development. However when getting ready to release and host the content on a web site, a number of extra features and customizations are likely needed to polish the visitor experience. This guide highlights things to pay attention to when deploying sites to the public."
-> 
-> _(from https://emscripten.org/docs/compiling/Deploying-Pages.html)_
+For interaction open the HTML shell. This is done by opening http://localhost:8080/nqc.html in your favorite web browser that is capable of working with WASM.
 
 Currently, NQC source code from an HTML `textarea` input is used as NQC's input. NQC is used to generate a listing and the bytecode.
 
@@ -70,3 +75,5 @@ Currently, NQC source code from an HTML `textarea` input is used as NQC's input.
 - Make the UI nice for good UX
 - Add i18n support
 - Add [Blockly](https://developers.google.com/blockly) support for visual programming and generate NQC code from it (should be another project which uses WebNQC behind the scenes)
+- Add syntax highlighting to the editor (`textarea`)
+- Add parsing of error message, e.g. to highlight the first line (or all lines) where an error is indicated

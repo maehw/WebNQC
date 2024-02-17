@@ -127,19 +127,26 @@ div.emscripten_border { border: 1px solid black; }
     <div class="page_title">WebNQC - Not Quite C (NQC) in the web browser</div>
     <div class="spinner" id='spinner'></div>
     <div class="emscripten" id="status">Downloading...</div>
+    <button id="butCompile" type="button">Compile</button>
 
     <div class="emscripten">
       <progress value="0" max="100" id="progress" hidden=1></progress>
     </div>
 
-    <textarea id="infile" readonly>task main() {
-    OnFwd(OUT_A);
-    OnFwd(OUT_C);
-    Wait(400);
-    OnRev(OUT_A+OUT_C);
-    Wait(400);
-    Off(OUT_A+OUT_C);
-}</textarea>
+    <textarea id="infile" readonly>
+task main()
+{
+	// RCX needs to be told what kind of sensor is used
+	SetSensor(SENSOR_1, SENSOR_TOUCH);
+
+	On(OUT_A);
+
+	until(SENSOR_1 == 1);
+
+	PlaySound(SOUND_CLICK);
+	Off(OUT_A);
+}
+</textarea>
     <textarea id="stdout" readonly></textarea>
     <textarea id="stderr" readonly></textarea>
 
@@ -147,6 +154,13 @@ div.emscripten_border { border: 1px solid black; }
       var statusElement = document.getElementById('status');
       var progressElement = document.getElementById('progress');
       var spinnerElement = document.getElementById('spinner');
+      var butCompile = document.getElementById('butCompile');
+
+      butCompile.addEventListener('click', clickCompile);
+
+      function clickCompile() {
+        alert("clickCompile");
+      }
 
       var Module = {
         print: (function() {
