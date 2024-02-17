@@ -179,7 +179,7 @@ bin:
 	$(MKDIR) bin
 
 bin/nqc.html: compiler/parse.cpp $(OBJ)
-	$(CXX) -o $@ --shell-file ./emscripten/webnqc_shell.html $(OBJ) $(LIBS)
+	$(CXX) -o $@ --shell-file ./emscripten/webnqc_shell.html -sMODULARIZE -s 'EXPORT_NAME="createMyModule"' $(OBJ) $(LIBS)
 
 #
 # clean up stuff

@@ -125,8 +125,8 @@ div.emscripten_border { border: 1px solid black; }
   </head>
   <body>
     <div class="page_title">WebNQC - Not Quite C (NQC) in the web browser</div>
-    <div class="spinner" id='spinner'></div>
-    <div class="emscripten" id="status">Downloading...</div>
+<!--    <div class="spinner" id='spinner'></div> -->
+<!--    <div class="emscripten" id="status">Downloading...</div> -->
     <button id="butCompile" type="button">Compile</button>
 
     <div class="emscripten">
@@ -149,7 +149,8 @@ task main()
 </textarea>
     <textarea id="stdout" readonly></textarea>
     <textarea id="stderr" readonly></textarea>
-
+    <!- {{{ SCRIPT }}} -->
+    <script type="text/javascript" src="nqc.js"></script>
     <script type='text/javascript'>
       var statusElement = document.getElementById('status');
       var progressElement = document.getElementById('progress');
@@ -158,10 +159,36 @@ task main()
 
       butCompile.addEventListener('click', clickCompile);
 
-      function clickCompile() {
+      async function clickCompile() {
         alert("clickCompile");
+
+        const printFunction = (function() {
+          var element = document.getElementById('stdout');
+          if (element) element.value = ''; // clear browser cache
+          return function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            //console.log(text);
+            if (element) {
+              element.value += text + "\n";
+              //element.scrollTop = element.scrollHeight; // focus on bottom
+            }
+          };
+        })();
+
+        const module = await createMyModule({ 'arguments': ['-help'], 'print': printFunction });
       }
 
+/*
+    // optional default settings inside first parentheses
+    let module;
+    createMyModule().then(instance => {
+      module = instance;
+      debugger;
+    });
+*/
+
+
+/*
       var Module = {
         print: (function() {
           var element = document.getElementById('stdout');
@@ -234,7 +261,7 @@ task main()
       Module['onRuntimeInitialized'] = function() {
         alert("Ready to run code!");
       };
+*/
     </script>
-    {{{ SCRIPT }}}
   </body>
 </html>

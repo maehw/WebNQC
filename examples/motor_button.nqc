@@ -1,17 +1,12 @@
-#define BUTTON	SENSOR_1
-#define MOTOR	OUT_A
-
 task main()
 {
-#ifdef __RCX
 	// RCX needs to be told what kind of sensor is used
-	SetSensor(BUTTON, SENSOR_TOUCH);
-#endif
+	SetSensor(SENSOR_1, SENSOR_TOUCH);
 
-	On(MOTOR);
+	On(OUT_A);
 		
-	until(BUTTON == 1);
+	until(SENSOR_1 == 1);
 
 	PlaySound(SOUND_CLICK);
-	Off(MOTOR);	
+	Off(OUT_A);
 }
