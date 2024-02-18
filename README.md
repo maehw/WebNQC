@@ -21,6 +21,8 @@ Build NQC using [Emscripten Compiler Frontend (emcc)](https://emscripten.org/doc
 emmake make CXX=emcc
 ```
 
+There are some details, hidden in the `Makefile`: a custom shell file is used. What does that mean?
+
 >"Emscripten build output consists of two essential parts: 
 >
 >1) the low level compiled code module and
@@ -35,9 +37,7 @@ emmake make CXX=emcc
 > 
 > _(from https://emscripten.org/docs/compiling/Deploying-Pages.html)_
 
-The `Makefile` uses `--shell-file` to point to a custom HTML template shell file.
-
-So, let's check the results and try to run NQC WASM locally:
+Due to the chosen settings, running the NQC WASM locally with node, won't show anything:
 
 ```shell
 $ cd bin
@@ -46,12 +46,11 @@ $ ls
 nqc.html nqc.js nqc.wasm
 
 $ node nqc.js
-nqc version 3.2 r1 (built Feb  5 2024, 13:37:42)
-     Copyright (C) 2005 John Hansen.  All Rights Reserved.
-Usage error: try 'nqc -help' to display options
+
+$
 ```
 
-Looks good so far! Now, let's run it from a local web server (from folder `./bin/`, using Python):
+Time to start a local web server using Python - from that same `./bin/` folder:
 
 ```shell
 python -m http.server 8080
@@ -59,28 +58,21 @@ python -m http.server 8080
 
 We do this because "several browsers (including Chrome, Safari, and Internet Explorer) do not support `file://` XHR requests, and can’t load extra files needed by the HTML (like a .wasm file, or packaged file data as mentioned lower down)."
 
-For interaction open the HTML shell. This is done by opening http://localhost:8080/nqc.html in your favorite web browser that is capable of working with WASM.
+For user interaction open the HTML shell: browse to  http://localhost:8080/nqc.html in your favorite web browser that is capable of working with WASM.
 
-Currently, NQC source code from an HTML `textarea` input is used as NQC's input. NQC is used to generate a listing and the bytecode.
-
-What we want is to execute the `main()` function 
-
-- only on demand (e.g. a _button click_)
-- repeatedly and not only once (e.g. on _every_ button click)
-
-and not after startup is complete.
+Enter your NQC source code in the very first textarea and hit the "Compile with NQC" button.
 
 
 ## TODOs and visions
 
+- Add feature to download the compiled `.rcx` file to a LEGO Mindstorms RCX programmable brick using an IR tower. (That's another PoC I am currently working on: adding support for download of bytecode to the RCX using the [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for IR tower access.)
 - Remove unwanted features or at least their accessibility; especially bytecode download functions
 - Add CI pipeline (e.g. GitHub Actions) for automatic build & semi-automatic relase
-- Implement support for download of bytecode to the RCX using the [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for IR tower access
-- Allow _real_ interaction: make NQC input file `textarea` writable and add button to re-compile the code
-- Add feature to switch between different source files and keep them (locally?) for longer than a browser session
 - Add feature to share projects with others
 - Make the UI nice for good UX
 - Add i18n support
 - Add [Blockly](https://developers.google.com/blockly) support for visual programming and generate NQC code from it (should be another project which uses WebNQC behind the scenes)
 - Add syntax highlighting to the editor (`textarea`)
 - Add parsing of error message, e.g. to highlight the first line (or all lines) where an error is indicated
+
+I'll also post updates here: https://chaos.social/@maehw

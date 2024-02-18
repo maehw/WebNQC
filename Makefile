@@ -179,7 +179,7 @@ bin:
 	$(MKDIR) bin
 
 bin/nqc.html: compiler/parse.cpp $(OBJ)
-	$(CXX) -o $@ --shell-file ./emscripten/webnqc_shell.html -sMODULARIZE -s 'EXPORT_NAME="createMyModule"' $(OBJ) $(LIBS)
+	$(CXX) -o $@ --shell-file ./emscripten/webnqc_shell.html -s INVOKE_RUN=0 -s MODULARIZE=1 -s EXPORT_NAME=createWebNqc -s EXPORTED_RUNTIME_METHODS='["callMain","FS"]' $(OBJ) $(LIBS)
 
 #
 # clean up stuff

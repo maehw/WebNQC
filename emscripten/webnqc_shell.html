@@ -4,79 +4,11 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>WebNQC - Not Quite C (NQC) in the web browser</title>
-    <style>body {
-  font-family: arial;
-  margin: 0;
-  padding: none;
-}
+    <style>{{{ SHELL_CSS }}}
 
-.emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
-div.emscripten { text-align: center; }
-div.emscripten_border { border: 1px solid black; }
-
-.page_title {
-  text-align: center;
-  font-weight: bold;
-  padding: 5px;
-}
-
-.spinner {
-  height: 30px;
-  width: 30px;
-  margin: 0;
-  margin-top: 20px;
-  margin-left: 20px;
-  display: inline-block;
-  vertical-align: top;
-
-  -webkit-animation: rotation .8s linear infinite;
-  -moz-animation: rotation .8s linear infinite;
-  -o-animation: rotation .8s linear infinite;
-  animation: rotation 0.8s linear infinite;
-
-  border-left: 5px solid rgb(235, 235, 235);
-  border-right: 5px solid rgb(235, 235, 235);
-  border-bottom: 5px solid rgb(235, 235, 235);
-  border-top: 5px solid rgb(120, 120, 120);
-
-  border-radius: 100%;
-  background-color: rgb(189, 215, 46);
-}
-
-@-webkit-keyframes rotation {
-  from {-webkit-transform: rotate(0deg);}
-  to {-webkit-transform: rotate(360deg);}
-}
-@-moz-keyframes rotation {
-  from {-moz-transform: rotate(0deg);}
-  to {-moz-transform: rotate(360deg);}
-}
-@-o-keyframes rotation {
-  from {-o-transform: rotate(0deg);}
-  to {-o-transform: rotate(360deg);}
-}
-@keyframes rotation {
-  from {transform: rotate(0deg);}
-  to {transform: rotate(360deg);}
-}
-
-#status {
-  display: inline-block;
-  vertical-align: top;
-  margin-top: 30px;
-  margin-left: 20px;
-  font-weight: bold;
-  color: rgb(120, 120, 120);
-}
-
-#progress {
-  height: 20px;
-  width: 300px;
-}
-
-#infile {
+#txtInput {
   width: 100%;
-  height: 200px;
+  height: 120px;
   margin: 0 auto;
   margin-top: 10px;
   border-left: 0px;
@@ -84,15 +16,31 @@ div.emscripten_border { border: 1px solid black; }
   padding-left: 0px;
   padding-right: 0px;
   display: block;
-  background-color: lightgray;
+  background-color: white;
   color: black;
   font-family: 'Lucida Console', Monaco, monospace;
   outline: none;
 }
 
-#stdout {
+#txtOutput {
   width: 100%;
-  height: 300px;
+  height: 25px;
+  margin: 0 auto;
+  margin-top: 10px;
+  border-left: 0px;
+  border-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  display: block;
+  background-color: white;
+  color: black;
+  font-family: 'Lucida Console', Monaco, monospace;
+  outline: none;
+}
+
+#txtStdOut {
+  width: 100%;
+  height: 190px;
   margin: 0 auto;
   margin-top: 10px;
   border-left: 0px;
@@ -106,9 +54,9 @@ div.emscripten_border { border: 1px solid black; }
   outline: none;
 }
 
-#stderr {
+#txtStdError {
   width: 100%;
-  height: 100px;
+  height: 120px;
   margin: 0 auto;
   margin-top: 10px;
   border-left: 0px;
@@ -121,20 +69,27 @@ div.emscripten_border { border: 1px solid black; }
   font-family: 'Lucida Console', Monaco, monospace;
   outline: none;
 }
+
+#txtDebug {
+  width: 100%;
+  height: 120px;
+  margin: 0 auto;
+  margin-top: 10px;
+  border-left: 0px;
+  border-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  display: block;
+  background-color: lightgray;
+  color: black;
+  font-family: 'Lucida Console', Monaco, monospace;
+  outline: none;
+}
+
 </style>
   </head>
   <body>
-    <div class="page_title">WebNQC - Not Quite C (NQC) in the web browser</div>
-<!--    <div class="spinner" id='spinner'></div> -->
-<!--    <div class="emscripten" id="status">Downloading...</div> -->
-    <button id="butCompile" type="button">Compile</button>
-
-    <div class="emscripten">
-      <progress value="0" max="100" id="progress" hidden=1></progress>
-    </div>
-
-    <textarea id="infile" readonly>
-task main()
+    <textarea id="txtInput" rows="6">task main()
 {
 	// RCX needs to be told what kind of sensor is used
 	SetSensor(SENSOR_1, SENSOR_TOUCH);
@@ -145,123 +100,157 @@ task main()
 
 	PlaySound(SOUND_CLICK);
 	Off(OUT_A);
-}
-</textarea>
-    <textarea id="stdout" readonly></textarea>
-    <textarea id="stderr" readonly></textarea>
-    <!- {{{ SCRIPT }}} -->
+}</textarea>
+    <input id="cbListing" type="checkbox" checked />
+    <label for="cbListing">generate code listing</label>
+    <button id="btnConvert" type="button">Compile with NQC</button>
+    <textarea id="txtOutput" rows="6" readonly></textarea>
+    <textarea id="txtStdOut" rows="6" readonly></textarea>
+    <textarea id="txtStdError" rows="6" readonly></textarea>
+    <textarea id="txtDebug" rows="6" readonly></textarea>
     <script type="text/javascript" src="nqc.js"></script>
     <script type='text/javascript'>
-      var statusElement = document.getElementById('status');
-      var progressElement = document.getElementById('progress');
-      var spinnerElement = document.getElementById('spinner');
-      var butCompile = document.getElementById('butCompile');
+    let nqc;
+    const btnConvert = document.getElementById('btnConvert');
+    const txtInput = document.getElementById('txtInput');
+    const txtOutput = document.getElementById('txtOutput');
+    const txtStdOut = document.getElementById('txtStdOut');
+    const txtStdError = document.getElementById('txtStdError');
+    const txtDebug = document.getElementById('txtDebug');
+    const cbListing = document.getElementById('cbListing');
 
-      butCompile.addEventListener('click', clickCompile);
+    document.addEventListener('DOMContentLoaded', () => {
+      btnConvert.addEventListener('click', clickConvert);
+    });
 
-      async function clickCompile() {
-        alert("clickCompile");
+    function array2hex(arrayBuffer) {
+        if(arrayBuffer.length == 0) {
+            return ""
+        }
+        else {
+            return "0x"+Array.from(new Uint8Array(arrayBuffer))
+                .map(n => n.toString(16).toUpperCase().padStart(2, "0"))
+                .join(" 0x");
+        }
+    }
 
-        const printFunction = (function() {
-          var element = document.getElementById('stdout');
-          if (element) element.value = ''; // clear browser cache
+    // You use the factory function like so::
+    //
+    //   const module = await EXPORT_NAME();
+    //
+    // or:
+    //
+    //   let module;
+    //   EXPORT_NAME().then(instance => {
+    //     module = instance;
+    //   });
+
+    const printFunction = (function() {
+        if (txtStdOut) txtStdOut.value = ''; // clear browser cache
+        return function(text) {
+          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+          if (txtStdOut) {
+            txtStdOut.value += text + "\n";
+          }
+        };
+      })();
+
+    const printErrFunction = (function() {
+          if (txtStdError) txtStdError.value = ''; // clear browser cache
           return function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            //console.log(text);
-            if (element) {
-              element.value += text + "\n";
-              //element.scrollTop = element.scrollHeight; // focus on bottom
+            if (txtStdError) {
+              txtStdError.value += text + "\n";
             }
           };
         })();
 
-        const module = await createMyModule({ 'arguments': ['-help'], 'print': printFunction });
-      }
-
-/*
-    // optional default settings inside first parentheses
-    let module;
-    createMyModule().then(instance => {
-      module = instance;
-      debugger;
+    createWebNqc(
+      { 'print': printFunction,
+        'printErr': printErrFunction }
+    ).then(instance => {
+      nqc = instance;
     });
-*/
 
+    async function clickConvert() {
+      // console.log("Calling NQC");
 
-/*
-      var Module = {
-        print: (function() {
-          var element = document.getElementById('stdout');
-          if (element) element.value = ''; // clear browser cache
-          return function(text) {
-            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            //console.log(text);
-            if (element) {
-              element.value += text + "\n";
-              //element.scrollTop = element.scrollHeight; // focus on bottom
-            }
-          };
-        })(),
-        printErr: (function() {
-          var element = document.getElementById('stderr');
-          if (element) element.value = ''; // clear browser cache
-          return function(text) {
-            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            //console.log(text);
-            if (element) {
-              element.value += text + "\n";
-              //element.scrollTop = element.scrollHeight; // focus on bottom
-            }
-          };
-        })(),
-        setStatus: (text) => {
-          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-          if (text === Module.setStatus.last.text) return;
-          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-          var now = Date.now();
-          if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
-          Module.setStatus.last.time = now;
-          Module.setStatus.last.text = text;
-          if (m) {
-            text = m[1];
-            progressElement.value = parseInt(m[2])*100;
-            progressElement.max = parseInt(m[4])*100;
-            progressElement.hidden = false;
-            spinnerElement.hidden = false;
-          } else {
-            progressElement.value = null;
-            progressElement.max = null;
-            progressElement.hidden = true;
-            if (!text) spinnerElement.style.display = 'none';
-          }
-          statusElement.innerHTML = text;
-        },
-        totalDependencies: 0,
-        monitorRunDependencies: (left) => {
-          this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+      if (txtStdError) txtStdError.value = ''; // clear browser cache
+      if (txtStdOut) txtStdOut.value = ''; // clear browser cache
+      if (txtDebug) txtDebug.value = ''; // clear browser cache
+
+      if((typeof nqc !== 'undefined') && (nqc !== null)) {
+        // define file names
+        const input_filename = 'input.nqc';
+        const output_filename = 'output.rcx';
+
+        // create an input file with contents from textarea and make sure to terminate with a linebreak
+        nqc.FS.writeFile(input_filename, txtInput.value + "\n");
+
+        // call NQC
+        /*
+        Usage: nqc [options] [actions] [ - | filename ] [actions]
+           - : read from stdin instead of a source_file
+        Options:
+           -T<target>: target is one of: RCX CM Scout RCX2 Spy Swan (target=RCX2)
+           -d: send program to RCX2
+           -n: prevent the API header file from being included
+           -D<sym>[=<value>] : define macro <sym>
+           -U<sym>: undefine macro <sym>
+           -E[<filename>] : write compiler errors to <filename> (or stdout)
+           -R<filename> : redirect text output (datalog, etc) to <filename>
+           -I<path>: search <path> for include files
+           -L[<filename>] : generate code listing to <filename> (or stdout)
+           -s: include source code in listings if possible
+           -c: generate LASM compatible listings
+           -v: verbose
+           -q: quiet; suppress action sounds
+           -x: omit packet header (RCX, RCX2 targets only)
+           -f<size>: set firmware chunk size in bytes
+           -w<ms>: set the download wait timeout in milliseconds
+           -O<outfile>: specify output file
+           -S<portname>: specify tower serial port
+           -b: treat input file as a binary file (don't compile it)
+           -1: use NQC API 1.x compatibility mode
+        Actions:
+           -run: run current program
+           -pgm <number>: select program number
+           -datalog | -datalog_full: fetch datalog from RCX2
+           -near | -far: set IR tower to near or far mode
+           -watch <hhmm> | now: set RCX2 clock to <hhmm> or system time
+           -firmware <filename>: send firmware to RCX2
+           -firmfast <filename>: send firmware to RCX2 at quad speed
+           -getversion: report RCX2 ROM and firmware version
+           -batterylevel: report battery level in volts
+           -sleep <timeout>: set RCX2 sleep timeout in minutes
+           -msg <number>: send IR message to RCX2
+           -raw <data>: format data as a packet and send to RCX2
+           -remote <value> <repeat>: invoke a remote command on the RCX2
+           -clear: erase all programs and datalog on RCX2
+           -api: dump the standard API header file to stdout
+           -help: display command line options
+        */
+        let params;
+        if(cbListing.checked) {
+          args = ['-L', '-O'+output_filename, input_filename];
         }
-      };
-      Module.preInit = () => {
-        //FS.writeFile('infile.nqc', 'test')
-        FS.writeFile('infile.nqc', document.getElementById('infile').value)
-      },
-      // Module['arguments'] = ['-L/dev/stdout', 'infile.nqc']; // generate listing and write it to stdout
-      Module['arguments'] = ['-L/dev/stdout', '-O/dev/stderr', 'infile.nqc']; // generate listing and write it to stdout; write bytecode to stderr
-      // Module['arguments'] = ['-help']; // print usage
-      Module.setStatus('Downloading...');
-      window.onerror = (event) => {
-        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-        Module.setStatus('Exception thrown, see JavaScript console');
-        spinnerElement.style.display = 'none';
-        Module.setStatus = (text) => {
-          if (text) console.error('[post-exception status] ' + text);
-        };
-      };
-      Module['onRuntimeInitialized'] = function() {
-        alert("Ready to run code!");
-      };
-*/
+        else {
+          args = ['-O'+output_filename, input_filename];
+        }
+        txtDebug.value += "Calling with arguments: " + args + "\n";
+
+        let retval = nqc.callMain(args);
+        txtDebug.value += "Return value from call: " + retval + "\n";
+
+        const out = nqc.FS.readFile(output_filename);
+        txtDebug.value += "Output length: " + out.length + "\n";
+        txtDebug.value += "Output as HEX: " + array2hex(out) + "\n";
+
+        const outText = new TextDecoder().decode(out);
+        txtOutput.value = outText;
+      }
+    }
     </script>
+    <!-- {{{ SCRIPT }}} -->
   </body>
 </html>
