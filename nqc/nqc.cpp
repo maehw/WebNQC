@@ -72,7 +72,7 @@ FILE *gErrorStream = stderr;
 #define kMaxPrintedErrors   10
 
 
-
+/*
 class AutoLink : public RCX_Link
 {
 public:
@@ -91,7 +91,7 @@ private:
     const char* fSerialPort;
     bool fOpen;
 };
-
+*/
 
 
 class MyCompiler : public Compiler, public ErrorHandler
@@ -129,7 +129,7 @@ enum {
     kFirstActionCode = 256,
 //    kDatalogCode
 //    kDatalogFullCode,
-    kClearMemoryCode = kFirstActionCode,
+//    kClearMemoryCode
 //    kFirmwareCode,
 //    kFirmware4xCode,
 //    kGetVersion,
@@ -141,10 +141,10 @@ enum {
 //    kRunCode, // not in WebNQC
 //    kProgramCode, // not in WebNQC
 //    kMessageCode,
-    kRawCode,
-    kRaw1Code,
-    kRemoteCode,
-    kApiCode,
+//    kRawCode,
+//    kRaw1Code,
+//    kRemoteCode,
+    kApiCode = kFirstActionCode,
     kHelpCode,
     kCompileStdinCode
 };
@@ -153,7 +153,7 @@ enum {
 static const char *sActionNames[] = {
 //    "datalog",
 //    "datalog_full",
-    "clear",
+//    "clear",
 //    "firmware",
 //    "firmfast",
 //    "getversion",
@@ -165,9 +165,9 @@ static const char *sActionNames[] = {
 //    "run",
 //    "pgm",
 //    "msg",
-    "raw",
-    "raw1",
-    "remote",
+//    "raw",
+//    "raw1",
+//    "remote",
     "api",
     "help",
     ""
@@ -209,7 +209,7 @@ static int CheckExtension(const char *s1, const char *ext);
 static RCX_Image *Compile(const char *sourceFile,  int flags);
 static bool GenerateListing(RCX_Image *image, const char *filename,
     bool includeSource, bool generateLASM);
-static RCX_Result Download(RCX_Image *image);
+//static RCX_Result Download(RCX_Image *image);
 //static RCX_Result UploadDatalog(bool verbose);
 //static RCX_Result DownloadFirmware(const char *filename, bool fast);
 //static RCX_Result GetVersion();
@@ -217,10 +217,10 @@ static RCX_Result Download(RCX_Image *image);
 //static RCX_Result SetWatch(const char *timeSpec);
 static RCX_Result SetErrorFile(const char *filename);
 static RCX_Result RedirectOutput(const char *filename);
-static RCX_Result SendRawCommand(const char *text, bool retry);
-static RCX_Result ClearMemory();
+//static RCX_Result SendRawCommand(const char *text, bool retry);
+//static RCX_Result ClearMemory();
 static RCX_Result SetTarget(const char *name);
-static RCX_Result SendRemote(const char *event, int repeat);
+//static RCX_Result SendRemote(const char *event, int repeat);
 #ifdef TEST_LEXER
 static void PrintToken(int t, TokenVal v);
 #endif
@@ -228,7 +228,7 @@ static void PrintApi(bool compatMode);
 static bool SameString(const char *s1, const char *s2);
 static void PrintVersion();
 
-AutoLink gLink;
+//AutoLink gLink; // no AutoLink / RCX_Link instance used in WebNQC as it's "only" used for compilation but no direct serial communication
 
 /// Default is an RCX running firmware v.0328 or later.
 RCX_TargetType gTargetType = kRCX_RCX2Target;
@@ -250,7 +250,7 @@ int main(int argc, char **argv)
     result = ProcessCommandLine(argc, argv);
     PrintError(result);
 
-    gLink.Close();
+    //gLink.Close(); // gLink instance doesn't exist in WebNQC, so must not be closed
 
     if (gErrorStream != stderr && gErrorStream != stdout) {
         fclose(gErrorStream);
@@ -358,14 +358,16 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                     if  (*(a+2)=='\0') return kUsageError;
                     result = SetTarget(a+2);
                     break;
+/*
+                // WebNQC: no direct communication with an RCX or IR tower or any link
                 case 'x':
                     gLink.SetOmitHeader(true);
                     break;
+                // WebNQC: no direct communication with a serial port; so also no firmware chunk size
                 case 'f':
                     if  (*(a+2)=='\0') return kUsageError;
                         gLink.SetRCXFirmwareChunkSize(atoi(a+2));
                      break;
-/*
                 // WebNQC: no download and hence no download wait time needed
                 case 'w':
                     if  (*(a+2)=='\0') return kUsageError;
@@ -419,11 +421,10 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                 case kDatalogFullCode:
                     result = UploadDatalog(true);
                     break;
-*/
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no RCX memory clearing
                 case kClearMemoryCode:
                     result = ClearMemory();
                     break;
-/*
                 // WebNQC: no communication with the brick in WebNQC from this program, so also no firmware download
                 case kFirmwareCode:
                     if (!args.Remain()) return kUsageError;
@@ -478,12 +479,13 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                     result = gLink.Send(cmd.Set(kRCX_Message,
                         (UByte)(args.NextInt())), false);
                     break;
-*/
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no raw commands
                 case kRawCode:
                 case kRaw1Code: // one-time send, no retry
                     if (!args.Remain()) return kUsageError;
                     result = SendRawCommand(args.Next(), code == kRawCode);
                     break;
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no remote commands
                 case kRemoteCode:
                     if (args.Remain() < 2) return kUsageError;
                     {
@@ -492,6 +494,7 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                         result = SendRemote(event, repeat);
                     }
                     break;
+*/
                 case kApiCode:
                     PrintApi(req.fFlags & Compiler::kCompat_Flag);
                     break;
@@ -654,7 +657,8 @@ RCX_Result ProcessFile(const char *sourceFile, const Request &req)
         Compiler::Get()->Reset();
 
     if (req.fDownload) {
-        result = Download(image);
+        fprintf(gErrorStream, "Error: download is not supported in WebNQC, check why this flag is set!\n");
+        //result = Download(image);
     }
 
     // Check for the case of a listing or output file failure but
@@ -717,6 +721,9 @@ RCX_Result GetBatteryLevel()
 }
 */
 
+
+// WebNQC: no communication with the brick in WebNQC from this program, so also no download
+/*
 RCX_Result Download(RCX_Image *image)
 {
     RCX_Result result;
@@ -739,6 +746,7 @@ ErrorReturn:
     fprintf(STDERR, "Error: program transfer failed (%d)\n", result);
     return result;
 }
+*/
 
 
 RCX_Image *Compile(const char *sourceFile, int flags)
@@ -819,6 +827,9 @@ RCX_Result UploadDatalog(bool verbose)
 }
 */
 
+
+// WebNQC: no communication with the brick in WebNQC from this program, so also no RCX memory clearing
+/*
 RCX_Result ClearMemory()
 {
     RCX_Result result;
@@ -843,6 +854,8 @@ RCX_Result ClearMemory()
     result = gLink.Send(cmd.Set(kRCX_SetDatalogOp, 0, 0));
     return result;
 }
+*/
+
 
 // WebNQC: no communication with the brick in WebNQC from this program, so also no version readout
 /*
@@ -904,7 +917,8 @@ ErrorReturn:
 }
 */
 
-
+// WebNQC: no communication with the brick in WebNQC from this program, so also no raw commands
+/*
 RCX_Result SendRawCommand(const char *text, bool retry)
 {
     int length = (int)strlen(text);
@@ -935,8 +949,11 @@ RCX_Result SendRawCommand(const char *text, bool retry)
 
     return result;
 }
+*/
 
 
+// WebNQC: no communication with the brick in WebNQC from this program, so also no remote commands
+/*
 RCX_Result SendRemote(const char *event, int repeat)
 {
     RCX_Cmd cmd;
@@ -960,6 +977,7 @@ RCX_Result SendRemote(const char *event, int repeat)
 
     return kRCX_OK;
 }
+*/
 
 
 char *CreateFilename(const char *source, const char *oldExt, const char *newExt)
@@ -1106,11 +1124,12 @@ void PrintError(RCX_Result error, const char *filename)
             fprintf(STDERR, "Problem talking to IR device\n");
             break;
         case kRCX_ReplyError:
-            if (gLink.WasErrorFromMissingFirmware()) {
+            // In WebNQC, there's no gLink; actually there's no target connection at all so we should never come here ;)
+            /*if (gLink.WasErrorFromMissingFirmware()) {
                 fprintf(STDERR, "No firmware installed on %s\n", targetName);
             }
-            else {
-                fprintf(STDERR, "No reply from %s\n", targetName);
+            else*/ {
+                fprintf(STDERR, "No reply from %s (code here shouldn't be reached)\n", targetName);
             }
             break;
         case kRCX_MemFullError:
@@ -1201,8 +1220,8 @@ void PrintUsage()
     fprintf(stdout,"   -c: generate LASM compatible listings\n");
     fprintf(stdout,"   -v: verbose\n");
     fprintf(stdout,"   -q: quiet; suppress action sounds\n");
-    fprintf(stdout,"   -x: omit packet header (RCX, RCX2 targets only)\n");
-    fprintf(stdout,"   -f<size>: set firmware chunk size in bytes\n");
+//    fprintf(stdout,"   -x: omit packet header (RCX, RCX2 targets only)\n");
+//    fprintf(stdout,"   -f<size>: set firmware chunk size in bytes\n");
 //    fprintf(stdout,"   -w<ms>: set the download wait timeout in milliseconds\n");
     fprintf(stdout,"   -O<outfile>: specify output file\n");
 //    fprintf(stdout,"   -S<portname>: specify tower serial port\n");
@@ -1220,14 +1239,15 @@ void PrintUsage()
 //    fprintf(stdout,"   -batterylevel: report battery level in volts\n");
 //    fprintf(stdout,"   -sleep <timeout>: set %s sleep timeout in minutes\n", targetName);
 //    fprintf(stdout,"   -msg <number>: send IR message to %s\n", targetName);
-    fprintf(stdout,"   -raw <data>: format data as a packet and send to %s\n", targetName);
-    fprintf(stdout,"   -remote <value> <repeat>: invoke a remote command on the %s\n", targetName);
-    fprintf(stdout,"   -clear: erase all programs and datalog on %s\n", targetName);
+//    fprintf(stdout,"   -raw <data>: format data as a packet and send to %s\n", targetName);
+//    fprintf(stdout,"   -remote <value> <repeat>: invoke a remote command on the %s\n", targetName);
+//    fprintf(stdout,"   -clear: erase all programs and datalog on %s\n", targetName);
     fprintf(stdout,"   -api: dump the standard API header file to stdout\n");
     fprintf(stdout,"   -help: display command line options\n");
 }
 
-
+// In WebNQC, there's no AutoLink instance, so also no definition of method Open() required
+/*
 RCX_Result AutoLink::Open()
 {
     RCX_Result result;
@@ -1243,8 +1263,10 @@ RCX_Result AutoLink::Open()
     }
     return kRCX_OK;
 }
+*/
 
-
+// In WebNQC, there's no AutoLink instance, so also no definition of method Close() required
+/*
 void AutoLink::Close()
 {
     if (fOpen) {
@@ -1252,8 +1274,10 @@ void AutoLink::Close()
         fOpen = false;
     }
 }
+*/
 
-
+// In WebNQC, there's no AutoLink instance, so also no definition of method Send() required
+/*
 RCX_Result AutoLink::Send(const RCX_Cmd *cmd, bool retry)
 {
     RCX_Result result;
@@ -1270,9 +1294,11 @@ RCX_Result AutoLink::Send(const RCX_Cmd *cmd, bool retry)
 
     return retry ? result : kRCX_OK;
 }
+*/
 
-
-bool AutoLink::DownloadProgress(int /* soFar */, int /* total */, int chunkSize)
+// In WebNQC, there's no AutoLink instance, so also no definition of method DownloadProgress() required
+/*
+bool AutoLink::DownloadProgress(int /<star> soFar <star>/, int /<star> total <star>/, int chunkSize)
 {
     char c;
     if (chunkSize <= 20) {
@@ -1292,7 +1318,7 @@ bool AutoLink::DownloadProgress(int /* soFar */, int /* total */, int chunkSize)
 
     return true;
 }
-
+*/
 
 void MyCompiler::AddError(const Error &e, const LexLocation *loc)
 {

@@ -66,7 +66,6 @@ Enter your NQC source code in the very first textarea and hit the "Compile with 
 ## TODOs and visions
 
 - Add feature to download the compiled `.rcx` file to a LEGO Mindstorms RCX programmable brick using an IR tower. (That's another PoC I am currently working on: adding support for download of bytecode to the RCX using the [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for IR tower access.)
-- Remove unwanted features or at least their accessibility; especially bytecode download functions
 - Add CI pipeline (e.g. GitHub Actions) for automatic build & semi-automatic relase
 - Add feature to share projects with others
 - Make the UI nice for good UX
