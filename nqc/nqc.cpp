@@ -127,19 +127,19 @@ private:
 // codes for the actions
 enum {
     kFirstActionCode = 256,
-    kDatalogCode = kFirstActionCode,
-    kDatalogFullCode,
-    kClearMemoryCode,
+//    kDatalogCode
+//    kDatalogFullCode,
+    kClearMemoryCode = kFirstActionCode,
     kFirmwareCode,
     kFirmware4xCode,
     kGetVersion,
     kGetBatteryLevel,
-    kNearCode,
-    kFarCode,
-    kWatchCode,
+//    kNearCode,
+//    kFarCode,
+//    kWatchCode,
     kSleepCode,
-    kRunCode,
-    kProgramCode,
+//    kRunCode, // not in WebNQC
+//    kProgramCode, // not in WebNQC
     kMessageCode,
     kRawCode,
     kRaw1Code,
@@ -151,9 +151,26 @@ enum {
 
 /// These must be in the same order as the codes for the long options
 static const char *sActionNames[] = {
-    "datalog", "datalog_full", "clear", "firmware", "firmfast",
-    "getversion", "batterylevel", "near", "far", "watch", "sleep",
-    "run", "pgm", "msg", "raw", "raw1", "remote", "api", "help", ""
+//    "datalog",
+//    "datalog_full",
+    "clear",
+    "firmware",
+    "firmfast",
+    "getversion",
+    "batterylevel",
+//    "near",
+//    "far",
+//    "watch",
+    "sleep",
+//    "run", // not in WebNQC
+//    "pgm", // not in WebNQC
+    "msg",
+    "raw",
+    "raw1",
+    "remote",
+    "api",
+    "help",
+    ""
 };
 
 /// These MUST be in the same order as the RCX_TargetType values
@@ -193,11 +210,11 @@ static RCX_Image *Compile(const char *sourceFile,  int flags);
 static bool GenerateListing(RCX_Image *image, const char *filename,
     bool includeSource, bool generateLASM);
 static RCX_Result Download(RCX_Image *image);
-static RCX_Result UploadDatalog(bool verbose);
+//static RCX_Result UploadDatalog(bool verbose);
 static RCX_Result DownloadFirmware(const char *filename, bool fast);
 static RCX_Result GetVersion();
 static RCX_Result GetBatteryLevel();
-static RCX_Result SetWatch(const char *timeSpec);
+//static RCX_Result SetWatch(const char *timeSpec);
 static RCX_Result SetErrorFile(const char *filename);
 static RCX_Result RedirectOutput(const char *filename);
 static RCX_Result SendRawCommand(const char *text, bool retry);
@@ -330,10 +347,13 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                     if  (*(a+2)=='\0') return kUsageError;
                     req.fOutputFile = a+2;
                     break;
+/*
+                // WebNQC: no direct communication with a serial port; so it's unnecessary to provide a serial name here
                 case 'S':
                     if  (*(a+2)=='\0') return kUsageError;
                     gLink.SetSerialPort(a+2);
                     break;
+*/
                 case 'T':
                     if  (*(a+2)=='\0') return kUsageError;
                     result = SetTarget(a+2);
@@ -345,26 +365,35 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                     if  (*(a+2)=='\0') return kUsageError;
                         gLink.SetRCXFirmwareChunkSize(atoi(a+2));
                      break;
+/*
+                // WebNQC: no download and hence no download wait time needed
                 case 'w':
                     if  (*(a+2)=='\0') return kUsageError;
                         gLink.SetDownloadWaitTime(atoi(a+2));
                     break;
+*/
                 case 'U':
                     if  (*(a+2)=='\0') return kUsageError;
                     Compiler::Get()->Undefine(a+2);
                     break;
+/*
+                // WebNQC: no download feature - that will be handled by another "program"
                 case 'd':
                     req.fDownload = true;
                     break;
+*/
                 case 'l':
                     req.fListing = true;
                     break;
                 case 'n':
                     req.fFlags |= Compiler::kNoSysFile_Flag;
                     break;
+/*
+                // WebNQC: do not treat binary input files
                 case 'b':
                     req.fBinary = true;
                     break;
+*/
                 case 't':
                     if (!args.Remain()) return kUsageError;
                     gTimeout = args.NextInt();
@@ -381,12 +410,16 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                     result = ProcessFile(nil, req);
                     fileProcessed = true;
                     break;
+/*
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no datalog access
                 case kDatalogCode:
                     result = UploadDatalog(false);
                     break;
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no datalog access
                 case kDatalogFullCode:
                     result = UploadDatalog(true);
                     break;
+*/
                 case kClearMemoryCode:
                     result = ClearMemory();
                     break;
@@ -404,30 +437,41 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                 case kGetBatteryLevel:
                     result = GetBatteryLevel();
                     break;
+/*
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no communication with the IR tower
                 case kNearCode:
                     result = gLink.Send(cmd.Set(kRCX_IRModeOp, 0));
                     break;
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no communication with the IR tower
                 case kFarCode:
                     result = gLink.Send(cmd.Set(kRCX_IRModeOp, 1));
                     break;
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no way to set the watch
                 case kWatchCode:
                     if (!args.Remain()) return kUsageError;
                     result = SetWatch(args.Next());
                     break;
+*/
                 case kSleepCode:
                     if (!args.Remain()) return kUsageError;
                     result = gLink.Send(cmd.Set(kRCX_AutoOffOp,
                         (UByte)args.NextInt()));
                     break;
+/*
+                // WebNQC: compiling, downloading and running the code is not part of this program for WebNQC
                 case kRunCode:
                     result = gLink.Send(cmd.Set(kRCX_StartTaskOp,
                         getTarget(gTargetType)->fRanges[kRCX_TaskChunk].fBase));
                     break;
+*/
+/*
+                // WebNQC: compiling, downloading and running the code is not part of this program for WebNQC
                 case kProgramCode:
                     if (!args.Remain()) return kUsageError;
                     result = gLink.Send(cmd.Set(kRCX_SelectProgramOp,
                         (UByte)(args.NextInt()-1)));
                     break;
+*/
                 case kMessageCode:
                     if (!args.Remain()) return kUsageError;
                     result = gLink.Send(cmd.Set(kRCX_Message,
@@ -517,6 +561,8 @@ RCX_Result SetTarget(const char *name)
  *  local time
  * @return the RCX_Result from running kRCX_SetWatchOp
  */
+ // WebNQC: no communication with the brick in WebNQC from this program, so also no datalog access
+/*
 RCX_Result SetWatch(const char *timeSpec)
 {
     int hour;
@@ -540,6 +586,7 @@ RCX_Result SetWatch(const char *timeSpec)
 
     return gLink.Send(cmd.Set(kRCX_SetWatchOp, (UByte)hour, (UByte)minute));
 }
+*/
 
 
 RCX_Result ProcessFile(const char *sourceFile, const Request &req)
@@ -739,7 +786,8 @@ RCX_Image *Compile(const char *sourceFile, int flags)
 #endif
 }
 
-
+/*
+// WebNQC: no communication with the brick in WebNQC from this program, so also no datalog access
 RCX_Result UploadDatalog(bool verbose)
 {
     RCX_Log log;
@@ -764,7 +812,7 @@ RCX_Result UploadDatalog(bool verbose)
 
     return kRCX_OK;
 }
-
+*/
 
 RCX_Result ClearMemory()
 {
@@ -1109,8 +1157,11 @@ void PrintError(RCX_Result error, const char *filename)
 
 void PrintVersion()
 {
-    fprintf(STDERR,"nqc version %s (built %s, %s)\n",
-        VERSION_STRING, __DATE__, __TIME__);
+    fprintf(STDERR,"nqc version %s (built ", VERSION_STRING);
+    #if __wasm__
+    fprintf(STDERR,"for the web ");
+    #endif
+    fprintf(STDERR,"%s, %s)\n", __DATE__, __TIME__);
     fprintf(STDERR,"     Copyright (C) 2005 John Hansen.  All Rights Reserved.\n");
 }
 
@@ -1127,7 +1178,7 @@ void PrintUsage()
         fprintf(stdout, " %s", sTargetNames[i]);
     }
     fprintf(stdout, " (target=%s)\n", targetName);
-    fprintf(stdout,"   -d: send program to \%s\n", targetName);
+//    fprintf(stdout,"   -d: send program to \%s\n", targetName);
     fprintf(stdout,"   -n: prevent the API header file from being included\n");
     fprintf(stdout,"   -D<sym>[=<value>] : define macro <sym>\n");
     fprintf(stdout,"   -U<sym>: undefine macro <sym>\n");
@@ -1141,16 +1192,16 @@ void PrintUsage()
     fprintf(stdout,"   -q: quiet; suppress action sounds\n");
     fprintf(stdout,"   -x: omit packet header (RCX, RCX2 targets only)\n");
     fprintf(stdout,"   -f<size>: set firmware chunk size in bytes\n");
-    fprintf(stdout,"   -w<ms>: set the download wait timeout in milliseconds\n");
+//    fprintf(stdout,"   -w<ms>: set the download wait timeout in milliseconds\n");
     fprintf(stdout,"   -O<outfile>: specify output file\n");
-    fprintf(stdout,"   -S<portname>: specify tower serial port\n");
-    fprintf(stdout,"   -b: treat input file as a binary file (don't compile it)\n");
+//    fprintf(stdout,"   -S<portname>: specify tower serial port\n");
+//    fprintf(stdout,"   -b: treat input file as a binary file (don't compile it)\n");
     fprintf(stdout,"   -1: use NQC API 1.x compatibility mode\n");
     fprintf(stdout,"Actions:\n");
-    fprintf(stdout,"   -run: run current program\n");
-    fprintf(stdout,"   -pgm <number>: select program number\n");
-    fprintf(stdout,"   -datalog | -datalog_full: fetch datalog from %s\n", targetName);
-    fprintf(stdout,"   -near | -far: set IR tower to near or far mode\n");
+//    fprintf(stdout,"   -run: run current program\n");
+//    fprintf(stdout,"   -pgm <number>: select program number\n");
+//    fprintf(stdout,"   -datalog | -datalog_full: fetch datalog from %s\n", targetName);
+//    fprintf(stdout,"   -near | -far: set IR tower to near or far mode\n");
     fprintf(stdout,"   -watch <hhmm> | now: set %s clock to <hhmm> or system time\n", targetName);
     fprintf(stdout,"   -firmware <filename>: send firmware to %s\n", targetName);
     fprintf(stdout,"   -firmfast <filename>: send firmware to %s at quad speed\n", targetName);
