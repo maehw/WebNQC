@@ -130,17 +130,17 @@ enum {
 //    kDatalogCode
 //    kDatalogFullCode,
     kClearMemoryCode = kFirstActionCode,
-    kFirmwareCode,
-    kFirmware4xCode,
-    kGetVersion,
-    kGetBatteryLevel,
+//    kFirmwareCode,
+//    kFirmware4xCode,
+//    kGetVersion,
+//    kGetBatteryLevel,
 //    kNearCode,
 //    kFarCode,
 //    kWatchCode,
-    kSleepCode,
+//    kSleepCode,
 //    kRunCode, // not in WebNQC
 //    kProgramCode, // not in WebNQC
-    kMessageCode,
+//    kMessageCode,
     kRawCode,
     kRaw1Code,
     kRemoteCode,
@@ -154,17 +154,17 @@ static const char *sActionNames[] = {
 //    "datalog",
 //    "datalog_full",
     "clear",
-    "firmware",
-    "firmfast",
-    "getversion",
-    "batterylevel",
+//    "firmware",
+//    "firmfast",
+//    "getversion",
+//    "batterylevel",
 //    "near",
 //    "far",
 //    "watch",
-    "sleep",
-//    "run", // not in WebNQC
-//    "pgm", // not in WebNQC
-    "msg",
+//    "sleep",
+//    "run",
+//    "pgm",
+//    "msg",
     "raw",
     "raw1",
     "remote",
@@ -211,9 +211,9 @@ static bool GenerateListing(RCX_Image *image, const char *filename,
     bool includeSource, bool generateLASM);
 static RCX_Result Download(RCX_Image *image);
 //static RCX_Result UploadDatalog(bool verbose);
-static RCX_Result DownloadFirmware(const char *filename, bool fast);
-static RCX_Result GetVersion();
-static RCX_Result GetBatteryLevel();
+//static RCX_Result DownloadFirmware(const char *filename, bool fast);
+//static RCX_Result GetVersion();
+//static RCX_Result GetBatteryLevel();
 //static RCX_Result SetWatch(const char *timeSpec);
 static RCX_Result SetErrorFile(const char *filename);
 static RCX_Result RedirectOutput(const char *filename);
@@ -423,21 +423,25 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                 case kClearMemoryCode:
                     result = ClearMemory();
                     break;
+/*
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no firmware download
                 case kFirmwareCode:
                     if (!args.Remain()) return kUsageError;
                     result = DownloadFirmware(args.Next(), false);
                     break;
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no firmware download
                 case kFirmware4xCode:
                     if (!args.Remain()) return kUsageError;
                     result = DownloadFirmware(args.Next(), true);
                     break;
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no version readout
                 case kGetVersion:
                     result = GetVersion();
                     break;
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no battery level readout
                 case kGetBatteryLevel:
                     result = GetBatteryLevel();
                     break;
-/*
                 // WebNQC: no communication with the brick in WebNQC from this program, so also no communication with the IR tower
                 case kNearCode:
                     result = gLink.Send(cmd.Set(kRCX_IRModeOp, 0));
@@ -451,32 +455,30 @@ RCX_Result ProcessCommandLine(int argc, char ** argv)
                     if (!args.Remain()) return kUsageError;
                     result = SetWatch(args.Next());
                     break;
-*/
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no way to set sleep timeout
                 case kSleepCode:
                     if (!args.Remain()) return kUsageError;
                     result = gLink.Send(cmd.Set(kRCX_AutoOffOp,
                         (UByte)args.NextInt()));
                     break;
-/*
                 // WebNQC: compiling, downloading and running the code is not part of this program for WebNQC
                 case kRunCode:
                     result = gLink.Send(cmd.Set(kRCX_StartTaskOp,
                         getTarget(gTargetType)->fRanges[kRCX_TaskChunk].fBase));
                     break;
-*/
-/*
                 // WebNQC: compiling, downloading and running the code is not part of this program for WebNQC
                 case kProgramCode:
                     if (!args.Remain()) return kUsageError;
                     result = gLink.Send(cmd.Set(kRCX_SelectProgramOp,
                         (UByte)(args.NextInt()-1)));
                     break;
-*/
+                // WebNQC: no communication with the brick in WebNQC from this program, so also no message support
                 case kMessageCode:
                     if (!args.Remain()) return kUsageError;
                     result = gLink.Send(cmd.Set(kRCX_Message,
                         (UByte)(args.NextInt())), false);
                     break;
+*/
                 case kRawCode:
                 case kRaw1Code: // one-time send, no retry
                     if (!args.Remain()) return kUsageError;
@@ -690,6 +692,8 @@ bool GenerateListing(RCX_Image *image, const char *fileName, bool includeSource,
     return true;
 }
 
+// WebNQC: no communication with the brick in WebNQC from this program, so also no battery level readout
+/*
 RCX_Result GetBatteryLevel()
 {
     RCX_Result result;
@@ -711,6 +715,7 @@ RCX_Result GetBatteryLevel()
         return result;
     }
 }
+*/
 
 RCX_Result Download(RCX_Image *image)
 {
@@ -786,8 +791,8 @@ RCX_Image *Compile(const char *sourceFile, int flags)
 #endif
 }
 
-/*
 // WebNQC: no communication with the brick in WebNQC from this program, so also no datalog access
+/*
 RCX_Result UploadDatalog(bool verbose)
 {
     RCX_Log log;
@@ -839,6 +844,8 @@ RCX_Result ClearMemory()
     return result;
 }
 
+// WebNQC: no communication with the brick in WebNQC from this program, so also no version readout
+/*
 RCX_Result GetVersion()
 {
     RCX_Result result;
@@ -854,7 +861,10 @@ RCX_Result GetVersion()
 
     return result;  
 }
+*/
 
+// WebNQC: no communication with the brick in WebNQC from this program, so also no firmware download
+/*
 RCX_Result DownloadFirmware(const char *filename, bool fast)
 {
     FILE *fp;
@@ -892,6 +902,7 @@ ErrorReturn:
     fprintf(STDERR, "Error: firmware transfer failed (%d)\n", result);
     return result;
 }
+*/
 
 
 RCX_Result SendRawCommand(const char *text, bool retry)
@@ -1202,13 +1213,13 @@ void PrintUsage()
 //    fprintf(stdout,"   -pgm <number>: select program number\n");
 //    fprintf(stdout,"   -datalog | -datalog_full: fetch datalog from %s\n", targetName);
 //    fprintf(stdout,"   -near | -far: set IR tower to near or far mode\n");
-    fprintf(stdout,"   -watch <hhmm> | now: set %s clock to <hhmm> or system time\n", targetName);
-    fprintf(stdout,"   -firmware <filename>: send firmware to %s\n", targetName);
-    fprintf(stdout,"   -firmfast <filename>: send firmware to %s at quad speed\n", targetName);
-    fprintf(stdout,"   -getversion: report %s ROM and firmware version\n", targetName);
-    fprintf(stdout,"   -batterylevel: report battery level in volts\n");
-    fprintf(stdout,"   -sleep <timeout>: set %s sleep timeout in minutes\n", targetName);
-    fprintf(stdout,"   -msg <number>: send IR message to %s\n", targetName);
+//    fprintf(stdout,"   -watch <hhmm> | now: set %s clock to <hhmm> or system time\n", targetName);
+//    fprintf(stdout,"   -firmware <filename>: send firmware to %s\n", targetName);
+//    fprintf(stdout,"   -firmfast <filename>: send firmware to %s at quad speed\n", targetName);
+//    fprintf(stdout,"   -getversion: report %s ROM and firmware version\n", targetName);
+//    fprintf(stdout,"   -batterylevel: report battery level in volts\n");
+//    fprintf(stdout,"   -sleep <timeout>: set %s sleep timeout in minutes\n", targetName);
+//    fprintf(stdout,"   -msg <number>: send IR message to %s\n", targetName);
     fprintf(stdout,"   -raw <data>: format data as a packet and send to %s\n", targetName);
     fprintf(stdout,"   -remote <value> <repeat>: invoke a remote command on the %s\n", targetName);
     fprintf(stdout,"   -clear: erase all programs and datalog on %s\n", targetName);

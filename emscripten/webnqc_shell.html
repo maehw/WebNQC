@@ -105,6 +105,8 @@
     <label for="cbListing">generate code listing</label>
     <input id="cbUsage" type="checkbox" />
     <label for="cbUsage">show command line usage</label>
+    <input id="cbVerbose" type="checkbox" />
+    <label for="cbVerbose">verbose</label>
     <button id="btnConvert" type="button">Compile with NQC</button>
     <textarea id="txtOutput" rows="6" readonly></textarea>
     <textarea id="txtStdOut" rows="6" readonly></textarea>
@@ -120,6 +122,7 @@
     const txtStdError = document.getElementById('txtStdError');
     const txtDebug = document.getElementById('txtDebug');
     const cbListing = document.getElementById('cbListing');
+    const cbVerbose = document.getElementById('cbVerbose');
     const cbUsage = document.getElementById('cbUsage');
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -217,12 +220,6 @@
            -S<portname>: specify tower serial port
            -w<ms>: set the download wait timeout in milliseconds
         Actions:
-           -firmware <filename>: send firmware to RCX2
-           -firmfast <filename>: send firmware to RCX2 at quad speed
-           -getversion: report RCX2 ROM and firmware version
-           -batterylevel: report battery level in volts
-           -sleep <timeout>: set RCX2 sleep timeout in minutes
-           -msg <number>: send IR message to RCX2
            -raw <data>: format data as a packet and send to RCX2
            -remote <value> <repeat>: invoke a remote command on the RCX2
            -clear: erase all programs and datalog on RCX2
@@ -234,6 +231,12 @@
            -datalog | -datalog_full: fetch datalog from RCX2
            -near | -far: set IR tower to near or far mode
            -watch <hhmm> | now: set RCX2 clock to <hhmm> or system time
+           -firmware <filename>: send firmware to RCX2
+           -firmfast <filename>: send firmware to RCX2 at quad speed
+           -getversion: report RCX2 ROM and firmware version
+           -batterylevel: report battery level in volts
+           -sleep <timeout>: set RCX2 sleep timeout in minutes
+           -msg <number>: send IR message to RCX2
         */
         let params;
         if(cbUsage.checked) {
@@ -245,6 +248,10 @@
             }
             else {
               args = ['-O'+output_filename, input_filename];
+            }
+
+            if(cbVerbose.checked) {
+                args.push('-v');
             }
         }
         txtDebug.value += "Calling with arguments: " + args + "\n";
